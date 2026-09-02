@@ -14,7 +14,7 @@ import java.net.URI;
 public class Civilian_Service {
 
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @Consumes( MediaType.APPLICATION_JSON )
     public Response addperson(@Context UriInfo uriInfo, Person person) {
 
         if (person == null) {

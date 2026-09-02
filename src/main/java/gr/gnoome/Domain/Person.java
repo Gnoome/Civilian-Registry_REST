@@ -1,72 +1,75 @@
 package gr.gnoome.Domain;
 
 public class Person  {
-    String Id=null;
-    String Name=null;
-    String Surname=null;
-    String Birthdate=null;
-    String Gender=null;
-    String Address=null;
-    String Tax=null;
+    String id=null;
+    String name=null;
+    String surname=null;
+    String birthdate=null;
+    String gender=null;
+    String address=null;
+    String tax=null;
 
+    public Person(){
+        
+    }
     
     public String getId() {
-        return Id;
+        return id;
     }
 
     public String getName() {
-        return Name;
+        return name;
     }
 
     public String getSurname() {
-        return Surname;
+        return surname;
     }
 
     public String getBirthdate() {
-        return Birthdate;
+        return birthdate;
     }
 
     public String getGender() {
-        return Gender;
+        return gender;
     }
 
     public String getAddress() {
-        return Address;
+        return address;
     }
 
     public String getTax() {
-        return Tax;
+        return tax;
     }
 
     public void setid(String id) {
-        this.Id = id;
+        this.id = id;
     }
 
     public void setName(String name) {
-        this.Name = name;
+        this.name = name;
     }
 
     public void setSurname(String surname) {
-        this.Surname = surname;
+        this.surname = surname;
     }
 
     public void setBirthdate(String birthdate) {
-        this.Birthdate = birthdate;
+        this.birthdate = birthdate;
     }
 
     public void setGender(String gender) {
-        this.Gender = gender;
+        this.gender = gender;
     }
 
     public void setAddress(String address) {
-        this.Address = address;
+        this.address = address;
     }
 
     public void setTax(String tax) {
-        this.Tax = tax;
+        this.tax = tax;
     }
 
     public String toString() {
-        return "ID: " + Id + ", Name: " + Name + ", Surname: " + Surname + ", Birthdate: " + Birthdate + ", Gender: " + Gender + (Address != null ? ", Address: " + Address : "") + (Tax != null ? ", Tax: " + Tax : "");
+        return "ID: " + id + ", Name: " + name + ", Surname: " + surname + ", Birthdate: " + birthdate + ", Gender: " + gender + (address != null ? ", Address: " + address : "") + (tax != null ? ", Tax: " + tax : "");
     }
 }
