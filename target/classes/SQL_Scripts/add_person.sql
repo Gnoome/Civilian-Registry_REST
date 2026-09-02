@@ -1,0 +1,1 @@
+INSERT INTO Civilian_Registry (ID, First_Name, Last_Name, Date_of_Birth, Gender, Address, Tax_Identification_Number) VALUES (?, ?, ?, ?, ?, ?, ?);

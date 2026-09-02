@@ -1,12 +1,11 @@
 package gr.gnoome.Utility;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
 import java.sql.*;
 import gr.gnoome.Domain.Person;
 
 public class Database_Manager {
-    
+
     private static final String url = "jdbc:mysql://localhost:3306/";
     private static final String user = "root";
     private static final String password = "";
@@ -14,11 +13,12 @@ public class Database_Manager {
 
     private static Connection getConnection(String dbName) {
         String URL = url;
-        if (dbName != null) URL+= dbName;
+        if (dbName != null)
+            URL += dbName;
         Connection con = null;
-        try{
+        try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection(URL,user,password);
+            con = DriverManager.getConnection(URL, user, password);
         } catch (Exception e) {
             System.out.println("Could not establish connection to the database");
             System.out.println(e.getMessage());
@@ -26,26 +26,26 @@ public class Database_Manager {
         return con;
     }
 
-
     public static void closeConnection(Connection con) {
-        try{
-             if (con != null && !con.isClosed()) con.close();
+        try {
+            if (con != null && !con.isClosed())
+                con.close();
         } catch (Exception e) {
             System.out.println("Error occurred while closing database connection");
             System.out.println(e.getMessage());
         }
-    
+
     }
 
-    public static boolean existsDatabase(){
+    public static boolean existsDatabase() {
         boolean found = false;
         Connection con = getConnection(null);
-        if (con != null){
-            try{
+        if (con != null) {
+            try {
                 ResultSet rs = con.getMetaData().getCatalogs();
-                while (rs.next()){
+                while (rs.next()) {
                     String catalogs = rs.getString(1);
-                    if (catalogs.equals(dbName)){
+                    if (catalogs.equals(dbName)) {
                         found = true;
                         break;
                     }
@@ -53,22 +53,23 @@ public class Database_Manager {
             } catch (Exception e) {
                 System.out.println("Error occurred while checking database existence");
                 System.out.println(e.getMessage());
-            }finally {
+            } finally {
                 closeConnection(con);
             }
         }
         return found;
     }
 
-    public static boolean createDatabase(){
+    public static boolean createDatabase() {
         boolean created = false;
 
         Connection con = getConnection(null);
-        if (con != null){
-            try{
+        if (con != null) {
+            try {
                 String SQL = "create database " + dbName + ";";
                 Statement st = con.createStatement();
-                st.execute(SQL); created = true;
+                st.execute(SQL);
+                created = true;
             } catch (Exception e) {
                 System.out.println("Error occurred while creating database");
                 System.out.println(e.getMessage());
@@ -76,39 +77,50 @@ public class Database_Manager {
                 closeConnection(con);
             }
         }
-        if (created) return createTables();
-    
+        if (created)
+            return createTables();
+
         return created;
     }
 
-    private static String getFileContent(String path){
-        try{
-            byte[] encoded = Files.readAllBytes(Paths.get(path));
-            return new String(encoded,StandardCharsets.UTF_8);
+    private static String getFileContent(String resourcePath) {
+        try (var inputStream = Database_Manager.class
+                .getClassLoader()
+                .getResourceAsStream(resourcePath)) {
+
+            if (inputStream == null) {
+                throw new IllegalArgumentException(
+                        "SQL resource not found: " + resourcePath);
+            }
+
+            return new String(
+                    inputStream.readAllBytes(),
+                    StandardCharsets.UTF_8);
+
         } catch (Exception e) {
-            System.out.println("Error occurred while reading file");
-            System.out.println(e.getMessage());
-            return null;
+            throw new RuntimeException(
+                    "Error while reading SQL resource: " + resourcePath, e);
         }
     }
 
-    private static void Rollback(Connection con){
-        try{
-            if (con != null) con.rollback();
+    private static void Rollback(Connection con) {
+        try {
+            if (con != null)
+                con.rollback();
         } catch (Exception e) {
             System.out.println("Error occurred while rolling back");
             System.out.println(e.getMessage());
         }
     }
 
-    private static boolean createTables(){
+    private static boolean createTables() {
         boolean created = false;
 
         Connection con = getConnection(dbName);
-        if (con != null){
-            try{
+        if (con != null) {
+            try {
                 con.setAutoCommit(false);
-                String SQL = getFileContent("src/SQL_Scripts/create_tables.sql");
+                String SQL = getFileContent("SQL_Scripts/create_tables.sql");
                 Statement st = con.createStatement();
                 st.execute(SQL);
 
@@ -127,32 +139,31 @@ public class Database_Manager {
         return created;
     }
 
-    public static boolean addperson(Person person){
+    public static boolean addperson(Person person) {
         System.out.println("person id: " + person.getId());
         boolean added = false;
         Connection con = getConnection(dbName);
-        if (con != null){
-            try{
+        if (con != null) {
+            try {
                 con.setAutoCommit(false);
-                String SQL = getFileContent("src/SQL_Scripts/add_person.sql");
-                try(PreparedStatement pst = con.prepareStatement(SQL)){
-                pst.setString(1, person.getId());
-                pst.setString(2, person.getName());
-                pst.setString(3, person.getSurname());
-                pst.setString(4, person.getBirthdate());
-                pst.setString(5, person.getGender());
-                pst.setString(6, person.getAddress());
-                pst.setString(7, person.getTax());
-                int rows = pst.executeUpdate();
+                String SQL = getFileContent("SQL_Scripts/add_person.sql");
+                try (PreparedStatement pst = con.prepareStatement(SQL)) {
+                    pst.setString(1, person.getId());
+                    pst.setString(2, person.getName());
+                    pst.setString(3, person.getSurname());
+                    pst.setString(4, person.getBirthdate());
+                    pst.setString(5, person.getGender());
+                    pst.setString(6, person.getAddress());
+                    pst.setString(7, person.getTax());
+                    int rows = pst.executeUpdate();
 
-                if(rows == 1){
-                    con.commit();
-                    added = true;
-                }        
-                
+                    if (rows == 1) {
+                        con.commit();
+                        added = true;
+                    }
+
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 System.out.println("Error occurred while adding person");
                 System.out.println(e.getMessage());
                 Rollback(con);
@@ -163,13 +174,13 @@ public class Database_Manager {
         return added;
     }
 
-    public static boolean existperson(String id){
+    public static boolean existperson(String id) {
         boolean exists = false;
         Connection con = getConnection(dbName);
-        if (con != null){
-            try{
-                String SQL = getFileContent("src/SQL_Scripts/exist_person.sql");
-                try(PreparedStatement pst = con.prepareStatement(SQL)){
+        if (con != null) {
+            try {
+                String SQL = getFileContent("SQL_Scripts/exist_person.sql");
+                try (PreparedStatement pst = con.prepareStatement(SQL)) {
                     pst.setString(1, id);
                     ResultSet rs = pst.executeQuery();
                     if (rs.next()) {
@@ -188,17 +199,17 @@ public class Database_Manager {
         return exists;
     }
 
-    public static boolean deleteperson(String id){
+    public static boolean deleteperson(String id) {
         boolean deleted = false;
         Connection con = getConnection(dbName);
-        if (con!= null){
-            try{
+        if (con != null) {
+            try {
                 con.setAutoCommit(false);
-                String SQL = getFileContent("src/SQL_Scripts/remove_person.sql");
-                try(PreparedStatement pst = con.prepareStatement(SQL)){
+                String SQL = getFileContent("SQL_Scripts/remove_person.sql");
+                try (PreparedStatement pst = con.prepareStatement(SQL)) {
                     pst.setString(1, id);
                     int rows = pst.executeUpdate();
-                    if(rows == 1){
+                    if (rows == 1) {
                         con.commit();
                         deleted = true;
                     }
@@ -214,96 +225,96 @@ public class Database_Manager {
         return deleted;
     }
 
-   public static void searchperson(Person person) {
-    Connection con = getConnection(dbName);
-    if (con != null) {
-        try{
-            StringBuilder SQL = new StringBuilder("SELECT * FROM Civilian_Registry WHERE 1=1");
-            if (person.getId() != null) {
-                SQL.append(" AND ID = ?");
+    public static void searchperson(Person person) {
+        Connection con = getConnection(dbName);
+        if (con != null) {
+            try {
+                StringBuilder SQL = new StringBuilder("SELECT * FROM Civilian_Registry WHERE 1=1");
+                if (person.getId() != null) {
+                    SQL.append(" AND ID = ?");
+                }
+                if (person.getName() != null) {
+                    SQL.append(" AND First_Name = ?");
+                }
+                if (person.getSurname() != null) {
+                    SQL.append(" AND Last_Name = ?");
+                }
+                if (person.getBirthdate() != null) {
+                    SQL.append(" AND Date_of_Birth = ?");
+                }
+                if (person.getGender() != null) {
+                    SQL.append(" AND Gender = ?");
+                }
+                if (person.getAddress() != null) {
+                    SQL.append(" AND Address = ?");
+
+                }
+                if (person.getTax() != null) {
+                    SQL.append(" AND Tax_Identification_Number = ?");
+                }
+                PreparedStatement pst = con.prepareStatement(SQL.toString());
+                int index = 1;
+                if (person.getId() != null) {
+                    pst.setString(index++, person.getId());
+                }
+                if (person.getName() != null) {
+                    pst.setString(index++, person.getName());
+                }
+                if (person.getSurname() != null) {
+                    pst.setString(index++, person.getSurname());
+                }
+                if (person.getBirthdate() != null) {
+                    pst.setString(index++, person.getBirthdate());
+                }
+                if (person.getGender() != null) {
+                    pst.setString(index++, person.getGender());
+                }
+                if (person.getAddress() != null) {
+                    pst.setString(index++, person.getAddress());
+                }
+                if (person.getTax() != null) {
+                    pst.setString(index++, person.getTax());
+                }
+
+                ResultSet rs = pst.executeQuery();
+                boolean found = false;
+                while (rs.next()) {
+                    found = true;
+                    System.out.println("ID: " + rs.getString("ID"));
+                    System.out.println("Name: " + rs.getString("First_Name"));
+                    System.out.println("Surname: " + rs.getString("Last_Name"));
+                    System.out.println("Birthdate: " + rs.getString("Date_of_Birth"));
+                    System.out.println("Gender: " + rs.getString("Gender"));
+                    System.out.println("Address: " + rs.getString("Address"));
+                    System.out.println("Tax: " + rs.getString("Tax_Identification_Number"));
+                    System.out.println("-------------------------");
+
+                }
+                if (!found) {
+                    System.out.println("No records found matching the search criteria.");
+                }
+                rs.close();
+                pst.close();
+            } catch (Exception e) {
+                System.out.println("Error occurred while searching for person");
+                System.out.println(e.getMessage());
+            } finally {
+                closeConnection(con);
             }
-            if (person.getName() != null) {
-                SQL.append(" AND First_Name = ?");
-            }
-            if (person.getSurname() != null) {
-                SQL.append(" AND Last_Name = ?");
-            }
-            if (person.getBirthdate() != null) {
-                SQL.append(" AND Date_of_Birth = ?");
-            }
-            if (person.getGender() != null) {
-                SQL.append(" AND Gender = ?");
-            }
-            if (person.getAddress() != null) {
-                SQL.append(" AND Address = ?");
-                
-            }
-            if (person.getTax() != null) {
-                SQL.append(" AND Tax_Identification_Number = ?");
-            }
-            PreparedStatement pst = con.prepareStatement(SQL.toString());
-            int index = 1;
-            if (person.getId() != null) {
-                pst.setString(index++, person.getId());
-            }
-            if (person.getName() != null) {
-                pst.setString(index++, person.getName());
-            }
-            if (person.getSurname() != null) {
-                pst.setString(index++, person.getSurname());
-            }
-            if (person.getBirthdate() != null) {
-                pst.setString(index++, person.getBirthdate());
-            }
-            if (person.getGender() != null) {
-                pst.setString(index++, person.getGender());
-            }
-            if (person.getAddress() != null) {
-                pst.setString(index++, person.getAddress());
-            }
-            if (person.getTax() != null) {
-                pst.setString(index++, person.getTax());
-            }
-            
-            ResultSet rs = pst.executeQuery();
-            boolean found = false;
-            while (rs.next()) {
-                found = true;
-                System.out.println("ID: " + rs.getString("ID"));
-                System.out.println("Name: " + rs.getString("First_Name"));
-                System.out.println("Surname: " + rs.getString("Last_Name"));
-                System.out.println("Birthdate: " + rs.getString("Date_of_Birth"));
-                System.out.println("Gender: " + rs.getString("Gender"));
-                System.out.println("Address: " + rs.getString("Address"));
-                System.out.println("Tax: " + rs.getString("Tax_Identification_Number"));
-                System.out.println("-------------------------");
 
         }
-            if (!found) {
-                System.out.println("No records found matching the search criteria.");
-            }
-            rs.close();
-            pst.close();
-        } catch (Exception e) {
-            System.out.println("Error occurred while searching for person");
-            System.out.println(e.getMessage());
-        } finally {
-            closeConnection(con);
-        }
-
-}
     }
 
     public static Boolean viewallpersons() {
-        Boolean flag=true;
+        Boolean flag = true;
         Connection con = getConnection(dbName);
-        if (con !=null){
-            try{
+        if (con != null) {
+            try {
                 String SQL = "SELECT * FROM Civilian_Registry WHERE 1=1";
                 Statement st = con.createStatement();
                 ResultSet rs = st.executeQuery(SQL);
 
-                while(rs.next()){
+                while (rs.next()) {
                     System.out.println("ID: " + rs.getString("ID"));
                     System.out.println("Name: " + rs.getString("First_Name"));
                     System.out.println("Surname: " + rs.getString("Last_Name"));
@@ -313,10 +324,10 @@ public class Database_Manager {
                     System.out.println("Tax: " + rs.getString("Tax_Identification_Number"));
                     System.out.println("-------------------------");
                 }
-            }catch (Exception e) {
+            } catch (Exception e) {
                 System.out.println("Error occurred while viewing all persons");
                 System.out.println(e.getMessage());
-                flag=false;
+                flag = false;
             } finally {
                 closeConnection(con);
             }
@@ -325,14 +336,14 @@ public class Database_Manager {
     }
 
     public static Boolean updateperson(Person person) {
-        Boolean flag= false;
+        Boolean flag = false;
 
         Connection con = getConnection(dbName);
         if (con != null) {
-            try{
+            try {
                 con.setAutoCommit(false);
-                String SQL = getFileContent("src/SQL_Scripts/update_person.sql");
-                try(PreparedStatement pst = con.prepareStatement(SQL)){
+                String SQL = getFileContent("SQL_Scripts/update_person.sql");
+                try (PreparedStatement pst = con.prepareStatement(SQL)) {
                     pst.setString(1, person.getAddress());
                     pst.setString(2, person.getTax());
                     pst.setString(3, person.getId());
