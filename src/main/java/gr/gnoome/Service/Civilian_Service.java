@@ -9,6 +9,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.*;
 
 @Path("/Civilians")
 public class Civilian_Service {
@@ -16,6 +17,10 @@ public class Civilian_Service {
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     public Response addperson(@Context UriInfo uriInfo, Person person) {
+
+        if(!Database_Manager.existsDatabase()){
+            Database_Manager.createDatabase();
+        }
 
         if (person == null) {
             throw new BadRequestException("Civilian is empty");
@@ -52,5 +57,20 @@ public class Civilian_Service {
                 .build();
 
         return Response.created(location).build();
+    }
+
+    @GET
+    @Path("/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Person> getAllCivilians(){
+
+        return Database_Manager.viewallpersons();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Person> getSelectedCivilians(Person person){
+
+        return Database_Manager.ViewSelectedCivilians(person);
     }
 }

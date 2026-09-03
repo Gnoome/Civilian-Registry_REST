@@ -3,6 +3,7 @@ package gr.gnoome.Utility;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import gr.gnoome.Domain.Person;
+import java.util.*;
 
 public class Database_Manager {
 
@@ -225,8 +226,9 @@ public class Database_Manager {
         return deleted;
     }
 
-    public static void searchperson(Person person) {
+    public static List<Person> ViewSelectedCivilians(Person person) {
         Connection con = getConnection(dbName);
+        List <Person> persons = new ArrayList<>();
         if (con != null) {
             try {
                 StringBuilder SQL = new StringBuilder("SELECT * FROM Civilian_Registry WHERE 1=1");
@@ -280,14 +282,16 @@ public class Database_Manager {
                 boolean found = false;
                 while (rs.next()) {
                     found = true;
-                    System.out.println("ID: " + rs.getString("ID"));
-                    System.out.println("Name: " + rs.getString("First_Name"));
-                    System.out.println("Surname: " + rs.getString("Last_Name"));
-                    System.out.println("Birthdate: " + rs.getString("Date_of_Birth"));
-                    System.out.println("Gender: " + rs.getString("Gender"));
-                    System.out.println("Address: " + rs.getString("Address"));
-                    System.out.println("Tax: " + rs.getString("Tax_Identification_Number"));
-                    System.out.println("-------------------------");
+
+                    person.setid(rs.getString("ID"));
+                    person.setName(rs.getString("First_Name"));
+                    person.setSurname(rs.getString("Last_Name"));
+                    person.setBirthdate(rs.getString("Date_of_Birth"));
+                    person.setGender(rs.getString("Gender"));
+                    person.setAddress(rs.getString("Address"));
+                    person.setTax(rs.getString("Tax_Identification_Number"));
+
+                    persons.add(person);
 
                 }
                 if (!found) {
@@ -301,12 +305,15 @@ public class Database_Manager {
             } finally {
                 closeConnection(con);
             }
-
+            
+            
         }
+        return persons;
     }
 
-    public static Boolean viewallpersons() {
-        Boolean flag = true;
+    public static List<Person> viewallpersons() {
+        List <Person> persons = new ArrayList<>();
+        
         Connection con = getConnection(dbName);
         if (con != null) {
             try {
@@ -315,24 +322,28 @@ public class Database_Manager {
                 ResultSet rs = st.executeQuery(SQL);
 
                 while (rs.next()) {
-                    System.out.println("ID: " + rs.getString("ID"));
-                    System.out.println("Name: " + rs.getString("First_Name"));
-                    System.out.println("Surname: " + rs.getString("Last_Name"));
-                    System.out.println("Birthdate: " + rs.getString("Date_of_Birth"));
-                    System.out.println("Gender: " + rs.getString("Gender"));
-                    System.out.println("Address: " + rs.getString("Address"));
-                    System.out.println("Tax: " + rs.getString("Tax_Identification_Number"));
-                    System.out.println("-------------------------");
+
+                    Person person = new Person();
+
+                    person.setid(rs.getString("ID"));
+                    person.setName(rs.getString("First_Name"));
+                    person.setSurname(rs.getString("Last_Name"));
+                    person.setBirthdate(rs.getString("Date_of_Birth"));
+                    person.setGender(rs.getString("Gender"));
+                    person.setAddress(rs.getString("Address"));
+                    person.setTax(rs.getString("Tax_Identification_Number"));
+
+                    persons.add(person);
                 }
             } catch (Exception e) {
                 System.out.println("Error occurred while viewing all persons");
                 System.out.println(e.getMessage());
-                flag = false;
+               
             } finally {
                 closeConnection(con);
             }
         }
-        return flag;
+        return persons;
     }
 
     public static Boolean updateperson(Person person) {
