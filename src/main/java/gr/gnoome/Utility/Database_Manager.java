@@ -12,6 +12,7 @@ public class Database_Manager {
     private static final String password = "";
     private static final String dbName = "civilian_database";
 
+
     private static Connection getConnection(String dbName) {
         String URL = url;
         if (dbName != null)
@@ -58,10 +59,15 @@ public class Database_Manager {
                 closeConnection(con);
             }
         }
+        if (!found){
+            if(createDatabase()){
+                found= true;
+            }
+        }
         return found;
     }
 
-    public static boolean createDatabase() {
+    private static boolean createDatabase() {
         boolean created = false;
 
         Connection con = getConnection(null);
@@ -346,7 +352,7 @@ public class Database_Manager {
         return persons;
     }
 
-    public static Boolean updateperson(Person person) {
+    public static Boolean updateperson(String id, String address, String tax) {
         Boolean flag = false;
 
         Connection con = getConnection(dbName);
@@ -355,9 +361,9 @@ public class Database_Manager {
                 con.setAutoCommit(false);
                 String SQL = getFileContent("SQL_Scripts/update_person.sql");
                 try (PreparedStatement pst = con.prepareStatement(SQL)) {
-                    pst.setString(1, person.getAddress());
-                    pst.setString(2, person.getTax());
-                    pst.setString(3, person.getId());
+                    pst.setString(1, id);
+                    pst.setString(2, address);
+                    pst.setString(3, tax);
                     int rows = pst.executeUpdate();
                     if (rows == 1) {
                         con.commit();
