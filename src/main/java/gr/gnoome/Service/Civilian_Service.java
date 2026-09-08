@@ -67,7 +67,7 @@ public class Civilian_Service {
 
         boolean IsItHere = Database_Manager.existperson(person.getId());
         if (IsItHere) {
-            throw new BadRequestException("Civilian alwready in the database");
+            throw new BadRequestException("Civilian already in the database");
         } else {
             Database_Manager.addperson(person);
         }
@@ -77,7 +77,7 @@ public class Civilian_Service {
                 .path(person.getId())
                 .build();
 
-        return Response.created(location).entity(person.getId()).build();
+        return Response.created(location).entity("Person added with ID: " + person.getId()).build();
     }
 
     @GET
@@ -122,7 +122,7 @@ public class Civilian_Service {
         CheckDatabaseAvailability();
        
         if(Database_Manager.deleteperson(id)){
-             return Response.noContent().build();
+             return Response.accepted("the person with ID: " + id + " has been successfully deleted").build();
         }
         else{
             throw new NotFoundException();
@@ -136,9 +136,11 @@ public class Civilian_Service {
 
         CheckDatabaseAvailability();
 
+        
+
         if(Database_Manager.updateperson(id,address,tax)){
 
-            return Response.ok().build();
+            return Response.ok("the person with ID: " + id + " has been successfully updated").build();
         }
         else{
             throw new BadRequestException();

@@ -361,10 +361,11 @@ public class Database_Manager {
                 con.setAutoCommit(false);
                 String SQL = getFileContent("SQL_Scripts/update_person.sql");
                 try (PreparedStatement pst = con.prepareStatement(SQL)) {
-                    pst.setString(1, id);
+                    pst.setString(1, address);
                     pst.setString(2, tax);
-                    pst.setString(3, address);
+                    pst.setString(3, id);
                     int rows = pst.executeUpdate();
+                    System.out.println("Rows affected: " + rows);
                     if (rows == 1) {
                         con.commit();
                         flag = true;
