@@ -362,8 +362,8 @@ public class Database_Manager {
                 String SQL = getFileContent("SQL_Scripts/update_person.sql");
                 try (PreparedStatement pst = con.prepareStatement(SQL)) {
                     pst.setString(1, id);
-                    pst.setString(2, address);
-                    pst.setString(3, tax);
+                    pst.setString(2, tax);
+                    pst.setString(3, address);
                     int rows = pst.executeUpdate();
                     if (rows == 1) {
                         con.commit();
